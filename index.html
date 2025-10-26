@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Access</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #000;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #starCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 450px;
+            background: rgba(20, 20, 30, 0.9);
+            border-radius: 15px;
+            padding: 0;
+            box-shadow: 0 0 30px rgba(0, 150, 255, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.5s ease;
+            position: relative;
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        /* Video Screen in Login Container */
+        .video-screen {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .video-screen video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.7;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            padding: 30px;
+            text-align: center;
+        }
+
+        .login-container h1 {
+            margin-bottom: 30px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: #00aaff;
+            text-shadow: 0 0 10px rgba(0, 170, 255, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px rgba(0, 170, 255, 0.5); }
+            to { text-shadow: 0 0 20px rgba(0, 170, 255, 0.8), 0 0 30px rgba(0, 170, 255, 0.6); }
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #00aaff;
+            box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #0066cc, #00aaff);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background: linear-gradient(45deg, #0055aa, #0099ee);
+            box-shadow: 0 0 15px rgba(0, 170, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .dashboard {
+            display: none;
+            padding: 30px;
+        }
+
+        .user-info {
+            margin-bottom: 30px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border-left: 3px solid #00aaff;
+        }
+
+        .user-info p {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .user-info span {
+            color: #00aaff;
+            font-weight: bold;
+        }
+
+        .number-input {
+            margin-bottom: 20px;
+        }
+
+        .menu-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .menu-btn {
+            padding: 12px;
+            background: rgba(0, 100, 200, 0.2);
+            border: 1px solid rgba(0, 170, 255, 0.3);
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .menu-btn:hover {
+            background: rgba(0, 100, 200, 0.4);
+            border-color: #00aaff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 170, 255, 0.3);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: rgba(0, 200, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            border-radius: 8px;
+            color: #0f0;
+            display: none;
+            z-index: 1000;
+        }
+
+        .error {
+            background: rgba(200, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            color: #f00;
+        }
+
+        .logout-btn {
+            background: rgba(200, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            color: #f00;
+        }
+
+        .logout-btn:hover {
+            background: rgba(200, 0, 0, 0.4);
+        }
+
+        /* Success Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e1e2e, #2a2a3e);
+            margin: 10% auto;
+            padding: 30px;
+            border: 1px solid rgba(0, 170, 255, 0.3);
+            width: 90%;
+            max-width: 450px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 170, 255, 0.5);
+            animation: slideIn 0.5s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-header h2 {
+            color: #00ff88;
+            font-size: 24px;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .modal-body {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .modal-body p {
+            margin: 12px 0;
+            font-size: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .modal-body label {
+            color: #888;
+        }
+
+        .modal-body span {
+            color: #00aaff;
+            font-weight: bold;
+        }
+
+        .modal-footer {
+            text-align: center;
+        }
+
+        .close-btn {
+            background: linear-gradient(45deg, #00ff88, #00aaff);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        .success-icon {
+            font-size: 50px;
+            color: #00ff88;
+            text-align: center;
+            margin-bottom: 20px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0, 170, 255, 0.3);
+            border-top: 3px solid #00aaff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="starCanvas"></canvas>
+    
+    <div class="notification" id="notification"></div>
+    
+    <div class="container" id="loginContainer">
+        <!-- Video Screen Inside Login Container -->
+        <div class="video-screen">
+            <video autoplay muted loop>
+                <source src="https://files.catbox.moe/rtg4b2.mp4" type="video/mp4">
+            </video>
+            <div class="video-overlay">
+                <div class="loading" id="loginLoading">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="login-container">
+            <h1>SYSTEM ACCESS</h1>
+            <div class="input-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Enter username">
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter password">
+            </div>
+            <button class="btn" onclick="login()">Login</button>
+        </div>
+    </div>
+    
+    <div class="container dashboard" id="dashboard">
+        <div class="user-info">
+            <p>Role: <span id="role">Administrator</span></p>
+            <p>Status: <span id="status">Active</span></p>
+            <p>Server Time: <span id="serverTime"></span></p>
+        </div>
+        
+        <div class="number-input">
+            <div class="input-group">
+                <label for="phoneNumber">Enter Number</label>
+                <input type="text" id="phoneNumber" placeholder="Enter phone number">
+            </div>
+        </div>
+        
+        <div class="menu-options">
+            <button class="menu-btn" onclick="executeOption('Delay invis')">Delay invis</button>
+            <button class="menu-btn" onclick="executeOption('Crash-systems')">Crash-systems</button>
+            <button class="menu-btn" onclick="executeOption('FC new')">FC new</button>
+            <button class="menu-btn" onclick="executeOption('FC Beta')">FC Beta</button>
+            <button class="menu-btn" onclick="executeOption('BLANK UI')">BLANK UI</button>
+            <button class="menu-btn" onclick="executeOption('Blank Andro')">Blank Andro</button>
+            <button class="menu-btn" onclick="executeOption('Crash IP')">Crash IP</button>
+            <button class="menu-btn logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <div class="success-icon">✓</div>
+            <div class="modal-header">
+                <h2>KEBERHASILAN</h2>
+            </div>
+            <div class="modal-body">
+                <p>
+                    <label>Dari:</label>
+                    <span id="modalFrom">System Admin</span>
+                </p>
+                <p>
+                    <label>Nomor Target:</label>
+                    <span id="modalTarget">-</span>
+                </p>
+                <p>
+                    <label>Jenis:</label>
+                    <span id="modalType">-</span>
+                </p>
+                <p>
+                    <label>Waktu:</label>
+                    <span id="modalTime">-</span>
+                </p>
+                <p>
+                    <label>Status:</label>
+                    <span id="modalStatus">Berhasil</span>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="close-btn" onclick="closeModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Star animation
+        const canvas = document.getElementById('starCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const stars = [];
+        const numStars = 200;
+        
+        for (let i = 0; i < numStars; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 1.5,
+                alpha: Math.random(),
+                speed: Math.random() * 0.05
+            });
+        }
+        
+        function drawStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+                ctx.fill();
+                
+                star.alpha += star.speed;
+                if (star.alpha > 1 || star.alpha < 0) {
+                    star.speed = -star.speed;
+                }
+            });
+            
+            requestAnimationFrame(drawStars);
+        }
+        
+        drawStars();
+        
+        // Window resize handler
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        // Login function
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === 'dimsz' && password === 'admin') {
+                // Show loading animation
+                document.getElementById('loginLoading').classList.add('active');
+                
+                setTimeout(() => {
+                    document.getElementById('loginLoading').classList.remove('active');
+                    showNotification('Login successful!', false);
+                    setTimeout(() => {
+                        document.getElementById('loginContainer').style.display = 'none';
+                        document.getElementById('dashboard').style.display = 'block';
+                        updateServerTime();
+                        setInterval(updateServerTime, 1000);
+                    }, 1000);
+                }, 2000);
+            } else {
+                showNotification('Invalid credentials!', true);
+            }
+        }
+        
+        // Update server time
+        function updateServerTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString();
+            document.getElementById('serverTime').textContent = timeString;
+        }
+        
+        // Execute menu option
+        function executeOption(option) {
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            
+            if (!phoneNumber) {
+                showNotification('Please enter a phone number first!', true);
+                return;
+            }
+            
+            showNotification(`Executing ${option} on ${phoneNumber}...`, false);
+            
+            // Simulate execution
+            setTimeout(() => {
+                showSuccessModal(option, phoneNumber);
+            }, 2000);
+        }
+        
+        // Show success modal
+        function showSuccessModal(option, phoneNumber) {
+            const now = new Date();
+            const timeString = now.toLocaleString();
+            
+            document.getElementById('modalFrom').textContent = 'System Admin';
+            document.getElementById('modalTarget').textContent = phoneNumber;
+            document.getElementById('modalType').textContent = option;
+            document.getElementById('modalTime').textContent = timeString;
+            document.getElementById('modalStatus').textContent = 'Berhasil';
+            
+            document.getElementById('successModal').style.display = 'block';
+        }
+        
+        // Close modal
+        function closeModal() {
+            document.getElementById('successModal').style.display = 'none';
+        }
+        
+        // Logout function
+        function logout() {
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('phoneNumber').value = '';
+            showNotification('Logged out successfully!', false);
+        }
+        
+        // Show notification
+        function showNotification(message, isError) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            
+            if (isError) {
+                notification.classList.add('error');
+            } else {
+                notification.classList.remove('error');
+            }
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('successModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

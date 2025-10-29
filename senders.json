@@ -1,0 +1,4 @@
+[
+  { "id": 1, "phone": "+6281234567890", "pairingCode": "ABC123", "status": "active", "createdAt": "2023-01-01T00:00:00.000Z" },
+  { "id": 2, "phone": "+6282297256372", "pairingCode": "XYZ789", "status": "inactive", "createdAt": "2023-01-02T00:00:00.000Z" }
+]
